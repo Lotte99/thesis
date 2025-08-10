@@ -102,8 +102,8 @@ data_test_dm <- data_test_dm %>%
     year   = data_test$year
   )
 
-# Renaming observed y test for demeaned outcome 
-y_test_dm <- data_test_dm[[y_agg]]
+# Setting aside y test (not demeaned)
+y_test_raw <- data_test[[y_agg]]
 
 ##### H1. Linear regression assumptions testing ################################
 
@@ -201,9 +201,9 @@ panel_preds <- as.numeric(Xte %*% beta_hat + firm_eff)
 
 panel_perf <- tibble(
   Method = "FE",
-  RMSE   = sqrt(mean((panel_preds - y_test_dm)^2)),
-  MAE    = mean(abs(panel_preds - y_test_dm)),
-  MSE    = mean((panel_preds - y_test_dm)^2)
+  RMSE   = sqrt(mean((panel_preds - y_test_raw)^2)),
+  MAE    = mean(abs(panel_preds - y_test_raw)),
+  MSE    = mean((panel_preds - y_test_raw)^2)
 )
 
 saveRDS(panel_mod_final, "panel_model_full.rds")
@@ -250,9 +250,9 @@ lasso_preds_raw <- lasso_preds_dm +
 
 lasso_perf <- tibble::tibble(
   Method = "LASSO_FE",
-  RMSE   = sqrt(mean((lasso_preds_raw - y_test_dm)^2)),
-  MAE    = mean(abs(lasso_preds_raw - y_test_dm)),
-  MSE    = mean((lasso_preds_raw - y_test_dm)^2)
+  RMSE   = sqrt(mean((lasso_preds_raw - y_test_raw)^2)),
+  MAE    = mean(abs(lasso_preds_raw - y_test_raw)),
+  MSE    = mean((lasso_preds_raw - y_test_raw)^2)
 )
 
 
@@ -360,13 +360,13 @@ hs_preds_dm  <- colMeans(post_pred)
 # Bringing back to raw scale as I did with LASSO
 hs_preds_raw <- hs_preds_dm +
   data_test_dm[[ paste0(y_agg, "_mean") ]]
-y_test_dm  <- data_test[[ y_agg ]]
+y_test_raw  <- data_test[[ y_agg ]]
 
 hs_perf <- tibble(
   Method = "HS_FE",
-  RMSE   = sqrt(mean((hs_preds_raw - y_test_dm)^2)),
-  MAE    = mean(abs(hs_preds_raw - y_test_dm)),
-  MSE    = mean((hs_preds_raw - y_test_dm)^2)
+  RMSE   = sqrt(mean((hs_preds_raw - y_test_raw)^2)),
+  MAE    = mean(abs(hs_preds_raw - y_test_raw)),
+  MSE    = mean((hs_preds_raw - y_test_raw)^2)
 )
 
 ci        <- posterior_interval(hs_mod, prob = 0.95, 
@@ -417,13 +417,13 @@ rf_preds_dm <- predict(rf_fit, newdata = data_test_dm[, h1_predictors])
 # bring back to raw scale
 rf_preds_raw <- rf_preds_dm +
   data_test_dm[[ paste0(y_agg, "_mean") ]]
-y_test_dm  <- data_test[[ y_agg ]]
+y_test_raw  <- data_test[[ y_agg ]]
 
 rf_perf <- tibble(
   Method = "RF_FE",
-  RMSE   = sqrt(mean((rf_preds_raw - y_test_dm)^2)),
-  MAE    = mean(abs(rf_preds_raw - y_test_dm)),
-  MSE    = mean((hs_preds_raw - y_test_dm)^2)
+  RMSE   = sqrt(mean((rf_preds_raw - y_test_raw)^2)),
+  MAE    = mean(abs(rf_preds_raw - y_test_raw)),
+  MSE    = mean((hs_preds_raw - y_test_raw)^2)
 )
 
 stopCluster(cl)
